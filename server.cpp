@@ -1,6 +1,3 @@
-// Build with: g++ server.cpp -o server -lhttplib -pthread -std=c++17
-// Install httplib: brew install cpp-httplib (on macOS)
-
 #include "httplib.h"
 #include <iostream>
 #include <thread>
@@ -10,7 +7,7 @@
 #include <vector>
 #include <mutex>
 #include <atomic>
-#include <condition_variable>
+#include <cstdlib>
 
 using namespace httplib;
 
@@ -26,12 +23,9 @@ Metrics run_simulation() {
 
     std::queue<int> q;
     std::mutex m;
-    std::condition_variable cv;
 
     std::atomic<int> processed{0};
-    std::atomic<bool> done{false};
 
-    // Fill queue
     for (int i = 0; i < TOTAL_JOBS; i++) {
         q.push(i);
     }
@@ -43,10 +37,8 @@ Metrics run_simulation() {
             int job;
 
             {
-                std::unique_lock<std::mutex> lock(m);
-
+                std::lock_guard<std::mutex> lock(m);
                 if (q.empty()) break;
-
                 job = q.front();
                 q.pop();
             }
@@ -59,7 +51,6 @@ Metrics run_simulation() {
     };
 
     std::vector<std::thread> threads;
-
     for (int i = 0; i < NUM_THREADS; i++) {
         threads.emplace_back(worker);
     }
@@ -68,12 +59,12 @@ Metrics run_simulation() {
 
     auto end = std::chrono::high_resolution_clock::now();
 
-    double total_time_sec =
+    double total_time =
         std::chrono::duration<double>(end - start).count();
 
     Metrics mtx;
-    mtx.throughput = processed / total_time_sec;
-    mtx.latency_us = (total_time_sec * 1e6) / processed;
+    mtx.throughput = processed / total_time;
+    mtx.latency_us = (total_time * 1e6) / processed;
 
     return mtx;
 }
@@ -138,12 +129,10 @@ body {
 <div class="terminal">
 )");
 
-                // -------- Boot --------
                 send("<div class='line'>$ Initializing system...</div>", 600);
                 send("<div class='line'>Spawning worker threads</div>", 500);
                 send("<div class='line'>Allocating job queue</div>", 500);
 
-                // -------- Run Simulation --------
                 send("<div class='line'><br>Running workload...</div>", 600);
 
                 for (int i = 0; i < 3; i++) {
@@ -157,20 +146,12 @@ body {
                     send(ss.str(), 700);
                 }
 
-                // -------- Identity --------
                 send("<div class='line'><br><br></div>", 200);
                 send("<div class='line highlight'>Shubham Kushwaha</div>", 600);
                 send("<div class='line'>C++ Lead Software Engineer</div>", 600);
 
                 send("<div class='line'><br></div>", 200);
-
-                send("<div class='line'>Specializing in:</div>", 400);
-                send("<div class='line'>• High-performance systems</div>", 400);
-                send("<div class='line'>• Concurrency & threading</div>", 400);
-                send("<div class='line'>• Low-latency architecture</div>", 400);
-
-                send("<div class='line'><br></div>", 200);
-                send("<div class='line'>System operating at peak efficiency.</div>", 500);
+                send("<div class='line'>High-performance systems • Concurrency • Low latency</div>", 500);
 
                 send(R"(</div></div>
 
@@ -187,6 +168,13 @@ setTimeout(() => location.reload(), 25000);
         );
     });
 
-    std::cout << "🚀 Running at http://0.0.0.0:8080\n";
-    svr.listen("0.0.0.0", 8080);
+    // -------- IMPORTANT: Railway Port --------
+    int port = 8080;
+    if (const char* p = std::getenv("PORT")) {
+        port = std::stoi(p);
+    }
+
+    std::cout << "🚀 Running on port " << port << std::endl;
+
+    svr.listen("0.0.0.0", port);
 }
