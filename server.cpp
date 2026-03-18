@@ -88,39 +88,76 @@ int main() {
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Shubham Kushwaha</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shubham Kushwaha | C++ Systems Engineer</title>
 
 <style>
-body {
+html, body {
     margin: 0;
+    padding: 0;
     background: #0b0b0c;
     color: #d1d5db;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", monospace;
+    overflow-y: auto;
+}
+
+body {
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
+    padding: 20px;
+    font-size: 14px;
 }
+
 .container {
     max-width: 800px;
-    width: 90%;
+    width: 100%;
 }
+
 .terminal {
     background: #111113;
     border-radius: 16px;
     padding: 30px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.6);
 }
+
 .line {
     opacity: 0;
     transform: translateY(10px);
     animation: fadeIn 0.8s ease forwards;
 }
-.highlight { color: #22c55e; }
-.metric { color: #60a5fa; }
+
+.highlight {
+    color: #22c55e;
+    font-weight: 500;
+}
+
+.metric {
+    color: #60a5fa;
+}
+
+.cursor {
+    display: inline-block;
+    width: 6px;
+    height: 14px;
+    background: #22c55e;
+    margin-left: 4px;
+    animation: blink 1s infinite;
+}
 
 @keyframes fadeIn {
     to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+/* Mobile polish */
+@media (max-width: 600px) {
+    .terminal {
+        padding: 20px;
+        border-radius: 12px;
+    }
 }
 </style>
 </head>
@@ -129,11 +166,13 @@ body {
 <div class="terminal">
 )");
 
-                send("<div class='line'>$ Initializing system...</div>", 600);
+                // -------- Boot --------
+                send("<div class='line'>$ Initializing system...</div>", 700);
                 send("<div class='line'>Spawning worker threads</div>", 500);
                 send("<div class='line'>Allocating job queue</div>", 500);
 
-                send("<div class='line'><br>Running workload...</div>", 600);
+                // -------- Metrics --------
+                send("<div class='line'><br>Processing workload...</div>", 600);
 
                 for (int i = 0; i < 3; i++) {
                     Metrics m = run_simulation();
@@ -146,12 +185,24 @@ body {
                     send(ss.str(), 700);
                 }
 
+                // -------- Identity --------
                 send("<div class='line'><br><br></div>", 200);
                 send("<div class='line highlight'>Shubham Kushwaha</div>", 600);
                 send("<div class='line'>C++ Lead Software Engineer</div>", 600);
 
                 send("<div class='line'><br></div>", 200);
-                send("<div class='line'>High-performance systems • Concurrency • Low latency</div>", 500);
+                send("<div class='line'>Designing systems handling millions of operations with low latency.</div>", 500);
+
+                send("<div class='line'><br></div>", 200);
+                send("<div class='line'>High-performance systems • Concurrency • Linux</div>", 500);
+
+                // -------- Links --------
+                send("<div class='line'><br></div>", 200);
+                send("<div class='line'>GitHub: github.com/yourname</div>", 400);
+                send("<div class='line'>LinkedIn: linkedin.com/in/yourname</div>", 400);
+
+                // -------- Cursor --------
+                send("<div class='line'><br>System running<span class='cursor'></span></div>", 500);
 
                 send(R"(</div></div>
 
@@ -168,7 +219,7 @@ setTimeout(() => location.reload(), 25000);
         );
     });
 
-    // -------- IMPORTANT: Railway Port --------
+    // -------- Railway Port --------
     int port = 8080;
     if (const char* p = std::getenv("PORT")) {
         port = std::stoi(p);
