@@ -19,11 +19,10 @@ struct Metrics {
 
 Metrics run_simulation() {
     const int NUM_THREADS = 4;
-    const int TOTAL_JOBS = 50000;
+    const int TOTAL_JOBS = 15000;
 
     std::queue<int> q;
     std::mutex m;
-
     std::atomic<int> processed{0};
 
     for (int i = 0; i < TOTAL_JOBS; i++) {
@@ -35,7 +34,6 @@ Metrics run_simulation() {
     auto worker = [&]() {
         while (true) {
             int job;
-
             {
                 std::lock_guard<std::mutex> lock(m);
                 if (q.empty()) break;
@@ -45,7 +43,6 @@ Metrics run_simulation() {
 
             // Simulated work
             for (volatile int i = 0; i < 100; i++);
-
             processed++;
         }
     };
@@ -79,7 +76,7 @@ int main() {
             "text/html",
             [](size_t, DataSink &sink) {
 
-                auto send = [&](const std::string& data, int delay = 400) {
+                auto send = [&](const std::string& data, int delay = 120) {
                     sink.write(data.c_str(), data.size());
                     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
                 };
@@ -89,128 +86,124 @@ int main() {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shubham Kushwaha | C++ Systems Engineer</title>
+<title>shubham@system</title>
 
 <style>
-html, body {
-    margin: 0;
-    padding: 0;
-    background: #0b0b0c;
-    color: #d1d5db;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", monospace;
-    overflow-y: auto;
-}
-
 body {
-    display: flex;
-    justify-content: center;
+    margin: 0;
+    background: #0d1117;
+    color: #33ff99;
+    font-family: "Courier New", monospace;
     padding: 20px;
     font-size: 14px;
 }
 
-.container {
-    max-width: 800px;
-    width: 100%;
-}
-
 .terminal {
-    background: #111113;
-    border-radius: 16px;
-    padding: 30px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    max-width: 900px;
+    margin: auto;
+    white-space: pre-wrap;
 }
 
-.line {
-    opacity: 0;
-    transform: translateY(10px);
-    animation: fadeIn 0.8s ease forwards;
-}
-
-.highlight {
-    color: #22c55e;
-    font-weight: 500;
+.prompt {
+    color: #58a6ff;
 }
 
 .metric {
-    color: #60a5fa;
+    color: #f2cc60;
+}
+
+.name {
+    color: #ffffff;
+    font-weight: bold;
 }
 
 .cursor {
     display: inline-block;
-    width: 6px;
+    width: 8px;
     height: 14px;
-    background: #22c55e;
+    background: #33ff99;
     margin-left: 4px;
     animation: blink 1s infinite;
-}
-
-@keyframes fadeIn {
-    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes blink {
     50% { opacity: 0; }
 }
-
-/* Mobile polish */
-@media (max-width: 600px) {
-    .terminal {
-        padding: 20px;
-        border-radius: 12px;
-    }
-}
 </style>
 </head>
+
 <body>
-<div class="container">
 <div class="terminal">
 )");
 
                 // -------- Boot --------
-                send("<div class='line'>$ Initializing system...</div>", 700);
-                send("<div class='line'>Spawning worker threads</div>", 500);
-                send("<div class='line'>Allocating job queue</div>", 500);
+                send("<span class='prompt'>shubham@system:~$</span> boot\n", 200);
+                send("Initializing system...\n", 120);
+                send("Spawning worker threads...\n", 120);
+                send("Allocating job queue...\n\n", 150);
 
-                // -------- Metrics --------
-                send("<div class='line'><br>Processing workload...</div>", 600);
+                // Run simulation once
+                Metrics m = run_simulation();
 
+                send("<span class='prompt'>shubham@system:~$</span> run workload\n\n", 200);
+
+                // -------- Processing animation --------
+                send("Processing requests", 200);
                 for (int i = 0; i < 3; i++) {
-                    Metrics m = run_simulation();
+                    send(".", 300);
+                }
+                send("\n\n", 200);
+
+                // -------- Metrics with realistic latency --------
+                for (int i = 0; i < 4; i++) {
+
+                    double jitter = (rand() % 40 - 20) / 100.0;
+
+                    // occasional spike
+                    if (rand() % 10 == 0) {
+                        jitter += (rand() % 50) / 100.0;
+                    }
+
+                    double latency = m.latency_us + jitter;
+                    int throughput = m.throughput - (rand() % 70000);
 
                     std::stringstream ss;
-                    ss << "<div class='line metric'>Latency: "
-                       << m.latency_us << " µs &nbsp;&nbsp;|&nbsp;&nbsp; Throughput: "
-                       << m.throughput << " ops/sec</div>";
+                    ss << "<span class='metric'>Latency:</span> "
+                       << latency << " µs   |   "
+                       << "<span class='metric'>Throughput:</span> "
+                       << throughput << " ops/sec\n";
 
-                    send(ss.str(), 700);
+                    send(ss.str(), 180 + rand() % 120);
                 }
 
+                send("\n");
+
                 // -------- Identity --------
-                send("<div class='line'><br><br></div>", 200);
-                send("<div class='line highlight'>Shubham Kushwaha</div>", 600);
-                send("<div class='line'>C++ Lead Software Engineer</div>", 600);
+                send("<span class='prompt'>shubham@system:~$</span> whoami\n", 150);
+                send("<span class='name'>Shubham Kushwaha</span>\n", 150);
+                send("C++ Lead Software Engineer\n\n", 150);
 
-                send("<div class='line'><br></div>", 200);
-                send("<div class='line'>Designing systems handling millions of operations with low latency.</div>", 500);
+                send("<span class='prompt'>shubham@system:~$</span> skills\n", 150);
+                send("- High-performance systems\n", 120);
+                send("- Concurrency & multithreading\n", 120);
+                send("- Low-latency architecture\n", 120);
+                send("- Linux internals\n\n", 150);
 
-                send("<div class='line'><br></div>", 200);
-                send("<div class='line'>High-performance systems • Concurrency • Linux</div>", 500);
+                send("<span class='prompt'>shubham@system:~$</span> status\n", 150);
+                send("System running at peak efficiency.\n", 150);
 
-                // -------- Links --------
-                send("<div class='line'><br></div>", 200);
-                send("<div class='line'>LinkedIn: https://www.linkedin.com/in/shubhamonlink/</div>", 400);
+                send("<span class='cursor'></span>\n");
 
-                // -------- Cursor --------
-                send("<div class='line'><br>System running<span class='cursor'></span></div>", 500);
-
-                send(R"(</div></div>
+                send(R"(
+</div>
 
 <script>
-setTimeout(() => location.reload(), 25000);
+setTimeout(() => location.reload(), 15000);
 </script>
 
 </body>
-</html>)");
+</html>
+)");
 
                 sink.done();
                 return true;
