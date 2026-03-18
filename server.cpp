@@ -41,7 +41,6 @@ Metrics run_simulation() {
                 q.pop();
             }
 
-            // Simulated work
             for (volatile int i = 0; i < 100; i++);
             processed++;
         }
@@ -76,7 +75,8 @@ int main() {
             "text/html",
             [](size_t, DataSink &sink) {
 
-                auto send = [&](const std::string& data, int delay = 120) {
+                // 🔥 Slightly slower base delay
+                auto send = [&](const std::string& data, int delay = 220) {
                     sink.write(data.c_str(), data.size());
                     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
                 };
@@ -136,23 +136,23 @@ body {
 <div class="terminal">
 )");
 
-                // -------- Boot --------
-                send("<span class='prompt'>shubham@system:~$</span> boot\n", 200);
-                send("Initializing system...\n", 120);
-                send("Spawning worker threads...\n", 120);
-                send("Allocating job queue...\n\n", 150);
+                // -------- Boot (slower for premium feel) --------
+                send("<span class='prompt'>shubham@system:~$</span> boot\n", 300);
+                send("Initializing system...\n", 220);
+                send("Spawning worker threads...\n", 220);
+                send("Allocating job queue...\n\n", 260);
 
                 // Run simulation once
                 Metrics m = run_simulation();
 
-                send("<span class='prompt'>shubham@system:~$</span> run workload\n\n", 200);
+                send("<span class='prompt'>shubham@system:~$</span> run workload\n\n", 300);
 
                 // -------- Processing animation --------
-                send("Processing requests", 200);
+                send("Processing requests", 300);
                 for (int i = 0; i < 3; i++) {
-                    send(".", 300);
+                    send(".", 400);
                 }
-                send("\n\n", 200);
+                send("\n\n", 250);
 
                 // -------- Metrics with realistic latency --------
                 for (int i = 0; i < 4; i++) {
@@ -173,24 +173,24 @@ body {
                        << "<span class='metric'>Throughput:</span> "
                        << throughput << " ops/sec\n";
 
-                    send(ss.str(), 180 + rand() % 120);
+                    send(ss.str(), 260 + rand() % 120);
                 }
 
                 send("\n");
 
-                // -------- Identity --------
-                send("<span class='prompt'>shubham@system:~$</span> whoami\n", 150);
-                send("<span class='name'>Shubham Kushwaha</span>\n", 150);
-                send("C++ Lead Software Engineer\n\n", 150);
+                // -------- Identity (slightly slower reveal) --------
+                send("<span class='prompt'>shubham@system:~$</span> whoami\n", 250);
+                send("<span class='name'>Shubham Kushwaha</span>\n", 300);
+                send("C++ Lead Software Engineer\n\n", 250);
 
-                send("<span class='prompt'>shubham@system:~$</span> skills\n", 150);
-                send("- High-performance systems\n", 120);
-                send("- Concurrency & multithreading\n", 120);
-                send("- Low-latency architecture\n", 120);
-                send("- Linux internals\n\n", 150);
+                send("<span class='prompt'>shubham@system:~$</span> skills\n", 200);
+                send("- High-performance systems\n", 180);
+                send("- Concurrency & multithreading\n", 180);
+                send("- Low-latency architecture\n", 180);
+                send("- Linux internals\n\n", 200);
 
-                send("<span class='prompt'>shubham@system:~$</span> status\n", 150);
-                send("System running at peak efficiency.\n", 150);
+                send("<span class='prompt'>shubham@system:~$</span> status\n", 200);
+                send("System running at peak efficiency.\n", 200);
 
                 send("<span class='cursor'></span>\n");
 
@@ -218,6 +218,5 @@ setTimeout(() => location.reload(), 15000);
     }
 
     std::cout << "🚀 Running on port " << port << std::endl;
-
     svr.listen("0.0.0.0", port);
 }
