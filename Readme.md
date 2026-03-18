@@ -61,3 +61,6 @@ C++ Lead Software Engineer
 This project simulates a real system to demonstrate:
 
 **Concurrency • Performance • System design**
+
+
+<img width="1106" height="524" alt="image" src="https://github.com/user-attachments/assets/164a698d-5d3b-41a2-b174-00b2dfe426e8" />
