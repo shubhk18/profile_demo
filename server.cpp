@@ -198,8 +198,7 @@ body {
 
                 // -------- Links --------
                 send("<div class='line'><br></div>", 200);
-                send("<div class='line'>GitHub: github.com/yourname</div>", 400);
-                send("<div class='line'>LinkedIn: linkedin.com/in/yourname</div>", 400);
+                send("<div class='line'>LinkedIn: https://www.linkedin.com/in/shubhamonlink/</div>", 400);
 
                 // -------- Cursor --------
                 send("<div class='line'><br>System running<span class='cursor'></span></div>", 500);
