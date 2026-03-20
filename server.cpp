@@ -75,7 +75,6 @@ int main() {
             "text/html",
             [](size_t, DataSink &sink) {
 
-                // 🔥 Slightly slower base delay
                 auto send = [&](const std::string& data, int delay = 220) {
                     sink.write(data.c_str(), data.size());
                     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
@@ -104,18 +103,9 @@ body {
     white-space: pre-wrap;
 }
 
-.prompt {
-    color: #58a6ff;
-}
-
-.metric {
-    color: #f2cc60;
-}
-
-.name {
-    color: #ffffff;
-    font-weight: bold;
-}
+.prompt { color: #58a6ff; }
+.metric { color: #f2cc60; }
+.name { color: #ffffff; font-weight: bold; }
 
 .cursor {
     display: inline-block;
@@ -136,30 +126,27 @@ body {
 <div class="terminal">
 )");
 
-                // -------- Boot (slower for premium feel) --------
+                // -------- Boot --------
                 send("<span class='prompt'>shubham@system:~$</span> boot\n", 300);
                 send("Initializing system...\n", 220);
                 send("Spawning worker threads...\n", 220);
                 send("Allocating job queue...\n\n", 260);
 
-                // Run simulation once
                 Metrics m = run_simulation();
 
                 send("<span class='prompt'>shubham@system:~$</span> run workload\n\n", 300);
 
-                // -------- Processing animation --------
+                // -------- Processing --------
                 send("Processing requests", 300);
                 for (int i = 0; i < 3; i++) {
                     send(".", 400);
                 }
                 send("\n\n", 250);
 
-                // -------- Metrics with realistic latency --------
+                // -------- Metrics --------
                 for (int i = 0; i < 4; i++) {
-
                     double jitter = (rand() % 40 - 20) / 100.0;
 
-                    // occasional spike
                     if (rand() % 10 == 0) {
                         jitter += (rand() % 50) / 100.0;
                     }
@@ -178,17 +165,25 @@ body {
 
                 send("\n");
 
-                // -------- Identity (slightly slower reveal) --------
+                // -------- Identity --------
                 send("<span class='prompt'>shubham@system:~$</span> whoami\n", 250);
                 send("<span class='name'>Shubham Kushwaha</span>\n", 300);
                 send("C++ Lead Software Engineer\n\n", 250);
 
+                // -------- C++ Note (NEW) --------
+                send("<span class='prompt'>shubham@system:~$</span> about\n", 250);
+                send("This interface is fully powered by C++\n", 220);
+                send("Rendering, simulation and backend logic run natively\n", 220);
+                send("Built without frontend frameworks\n\n", 250);
+
+                // -------- Skills --------
                 send("<span class='prompt'>shubham@system:~$</span> skills\n", 200);
                 send("- High-performance systems\n", 180);
                 send("- Concurrency & multithreading\n", 180);
                 send("- Low-latency architecture\n", 180);
                 send("- Linux internals\n\n", 200);
 
+                // -------- Status --------
                 send("<span class='prompt'>shubham@system:~$</span> status\n", 200);
                 send("System running at peak efficiency.\n", 200);
 
@@ -218,5 +213,6 @@ setTimeout(() => location.reload(), 15000);
     }
 
     std::cout << "🚀 Running on port " << port << std::endl;
+
     svr.listen("0.0.0.0", port);
 }
