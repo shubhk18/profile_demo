@@ -11,27 +11,32 @@
 
 using namespace httplib;
 
-// -------- Thread Pool Simulation --------
-struct Metrics {
+// -------- Thread Metrics --------
+struct ThreadMetric {
+    int thread_id;
     double latency_us;
     int throughput;
 };
 
-Metrics run_simulation() {
+// -------- Simulation --------
+std::vector<ThreadMetric> run_simulation() {
     const int NUM_THREADS = 4;
     const int TOTAL_JOBS = 15000;
 
     std::queue<int> q;
     std::mutex m;
-    std::atomic<int> processed{0};
 
     for (int i = 0; i < TOTAL_JOBS; i++) {
         q.push(i);
     }
 
-    auto start = std::chrono::high_resolution_clock::now();
+    std::vector<ThreadMetric> results(NUM_THREADS);
 
-    auto worker = [&]() {
+    auto worker = [&](int id) {
+        int local_processed = 0;
+
+        auto start = std::chrono::high_resolution_clock::now();
+
         while (true) {
             int job;
             {
@@ -42,27 +47,30 @@ Metrics run_simulation() {
             }
 
             for (volatile int i = 0; i < 100; i++);
-            processed++;
+            local_processed++;
         }
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        double total_time =
+            std::chrono::duration<double>(end - start).count();
+
+        ThreadMetric tm;
+        tm.thread_id = id;
+        tm.throughput = local_processed / total_time;
+        tm.latency_us = (total_time * 1e6) / std::max(1, local_processed);
+
+        results[id] = tm;
     };
 
     std::vector<std::thread> threads;
     for (int i = 0; i < NUM_THREADS; i++) {
-        threads.emplace_back(worker);
+        threads.emplace_back(worker, i);
     }
 
     for (auto &t : threads) t.join();
 
-    auto end = std::chrono::high_resolution_clock::now();
-
-    double total_time =
-        std::chrono::duration<double>(end - start).count();
-
-    Metrics mtx;
-    mtx.throughput = processed / total_time;
-    mtx.latency_us = (total_time * 1e6) / processed;
-
-    return mtx;
+    return results;
 }
 
 // -------- MAIN --------
@@ -75,7 +83,8 @@ int main() {
             "text/html",
             [](size_t, DataSink &sink) {
 
-                auto send = [&](const std::string& data, int delay = 220) {
+                // Slightly slower base delay
+                auto send = [&](const std::string& data, int delay = 260) {
                     sink.write(data.c_str(), data.size());
                     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
                 };
@@ -107,6 +116,8 @@ body {
 .metric { color: #f2cc60; }
 .name { color: #ffffff; font-weight: bold; }
 
+.note { color: #8b949e; }
+
 .cursor {
     display: inline-block;
     width: 8px;
@@ -127,24 +138,25 @@ body {
 )");
 
                 // -------- Boot --------
-                send("<span class='prompt'>shubham@system:~$</span> boot\n", 300);
-                send("Initializing system...\n", 220);
-                send("Spawning worker threads...\n", 220);
-                send("Allocating job queue...\n\n", 260);
+                send("<span class='prompt'>shubham@system:~$</span> boot\n", 350);
+                send("Initializing system...\n", 260);
+                send("Spawning worker threads...\n", 260);
+                send("Allocating job queue...\n\n", 300);
 
-                Metrics m = run_simulation();
+                auto metrics = run_simulation();
 
-                send("<span class='prompt'>shubham@system:~$</span> run workload\n\n", 300);
+                send("<span class='prompt'>shubham@system:~$</span> run workload\n\n", 350);
 
                 // -------- Processing --------
-                send("Processing requests", 300);
+                send("Processing requests", 350);
                 for (int i = 0; i < 3; i++) {
-                    send(".", 400);
+                    send(".", 500);
                 }
-                send("\n\n", 250);
+                send("\n\n", 300);
 
-                // -------- Metrics --------
-                for (int i = 0; i < 4; i++) {
+                // -------- Per-thread Metrics --------
+                for (auto &m : metrics) {
+
                     double jitter = (rand() % 40 - 20) / 100.0;
 
                     if (rand() % 10 == 0) {
@@ -152,40 +164,43 @@ body {
                     }
 
                     double latency = m.latency_us + jitter;
-                    int throughput = m.throughput - (rand() % 70000);
+                    int throughput = m.throughput - (rand() % 50000);
 
                     std::stringstream ss;
-                    ss << "<span class='metric'>Latency:</span> "
+
+                    ss << "[thread-" << m.thread_id << "] "
+                       << "<span class='metric'>Latency:</span> "
                        << latency << " µs   |   "
                        << "<span class='metric'>Throughput:</span> "
                        << throughput << " ops/sec\n";
 
-                    send(ss.str(), 260 + rand() % 120);
+                    send(ss.str(), 300 + rand() % 150);
                 }
 
                 send("\n");
 
                 // -------- Identity --------
-                send("<span class='prompt'>shubham@system:~$</span> whoami\n", 250);
-                send("<span class='name'>Shubham Kushwaha</span>\n", 300);
-                send("C++ Lead Software Engineer\n\n", 250);
-
-                // -------- C++ Note (NEW) --------
-                send("<span class='prompt'>shubham@system:~$</span> about\n", 250);
-                send("This interface is fully powered by C++\n", 220);
-                send("Rendering, simulation and backend logic run natively\n", 220);
-                send("Built without frontend frameworks\n\n", 250);
+                send("<span class='prompt'>shubham@system:~$</span> whoami\n", 300);
+                send("<span class='name'>Shubham Kushwaha</span>\n", 350);
+                send("C++ Lead Software Engineer\n\n", 300);
 
                 // -------- Skills --------
-                send("<span class='prompt'>shubham@system:~$</span> skills\n", 200);
-                send("- High-performance systems\n", 180);
-                send("- Concurrency & multithreading\n", 180);
-                send("- Low-latency architecture\n", 180);
-                send("- Linux internals\n\n", 200);
+                send("<span class='prompt'>shubham@system:~$</span> skills\n", 250);
+                send("- High-performance systems\n", 220);
+                send("- Concurrency & multithreading\n", 220);
+                send("- Low-latency architecture\n", 220);
+                send("- Linux internals\n\n", 250);
 
                 // -------- Status --------
-                send("<span class='prompt'>shubham@system:~$</span> status\n", 200);
-                send("System running at peak efficiency.\n", 200);
+                send("<span class='prompt'>shubham@system:~$</span> status\n", 250);
+                send("System running at peak efficiency.\n", 250);
+
+                // -------- Footer Note --------
+                send("\n", 200);
+                send("--------------------------------------------------\n", 180);
+                send("<span class='note'>Note: This entire interface is built using C++</span>\n", 260);
+                send("<span class='note'>including rendering, simulation and backend logic</span>\n", 260);
+                send("--------------------------------------------------\n", 220);
 
                 send("<span class='cursor'></span>\n");
 
@@ -193,7 +208,7 @@ body {
 </div>
 
 <script>
-setTimeout(() => location.reload(), 15000);
+setTimeout(() => location.reload(), 10000);
 </script>
 
 </body>
